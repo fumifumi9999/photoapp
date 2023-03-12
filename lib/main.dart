@@ -10,7 +10,7 @@ import 'package:photoapp/photo_list_screen.dart';
 import 'package:photoapp/providers.dart';
 
 void main() async {
-  // Flutterの初期化処理を待つ
+  // Flutterの初期化処理を待つつ
   WidgetsFlutterBinding.ensureInitialized();
 
   // アプリ起動前にFirebase初期化処理を入れる
