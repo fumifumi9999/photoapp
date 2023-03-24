@@ -8,9 +8,10 @@ final userProvider = StreamProvider.autoDispose((ref) {
 });
 
 final photoListProvider = StreamProvider.autoDispose((ref) {
+  //autoDisposeは自動的にメモリを開放するProvider
   final photoRepository = ref.watch(photoRepositoryProvider);
   return photoRepository == null
-      ? Stream.value(<Photo>[])
+      ? Stream.value(<Photo>[]) //Streamは一度だけ値を流す単一イベントを生成する
       : photoRepository.getPhotoList();
 });
 

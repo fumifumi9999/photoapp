@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photoapp/photo_repository.dart';
 import 'package:photoapp/providers.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:image_network/image_network.dart';
 
 class PhotoViewScreen extends ConsumerStatefulWidget {
   @override
@@ -38,16 +39,12 @@ class _PhotoViewScreenState extends ConsumerState<PhotoViewScreen> {
               int photoListIndex = ref.read(photoListIndexProvider);
               if (photoListIndex == 0) {
                 return ref.watch(photoListProvider).when(
-                      data: (List<Photo> photoList) =>
-                          // 画像 一覧
-                          PageView(
+                      data: (List<Photo> photoList) => PageView(
                         controller: _controller,
                         onPageChanged: (int index) => {},
                         children: photoList.map((Photo photo) {
-                          return Image.network(
-                            photo.imageURL,
-                            fit: BoxFit.cover,
-                          );
+                          return ImageNetwork(
+                              image: photo.imageURL, height: 200, width: 200);
                         }).toList(),
                       ),
                       loading: () => Scaffold(
@@ -69,10 +66,8 @@ class _PhotoViewScreenState extends ConsumerState<PhotoViewScreen> {
                         controller: _controller,
                         onPageChanged: (int index) => {},
                         children: photoList.map((Photo photo) {
-                          return Image.network(
-                            photo.imageURL,
-                            fit: BoxFit.cover,
-                          );
+                          return ImageNetwork(
+                              image: photo.imageURL, height: 200, width: 200);
                         }).toList(),
                       ),
                       loading: () => Scaffold(

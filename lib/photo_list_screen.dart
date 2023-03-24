@@ -14,6 +14,7 @@ import 'package:photoapp/photo_view_screen.dart';
 import 'package:photoapp/providers.dart';
 import 'package:photoapp/sign_in_screen.dart';
 import 'package:photoapp/photo.dart';
+import 'package:image_network/image_network.dart';
 
 class PhotoListScreen extends ConsumerStatefulWidget {
   @override
@@ -30,7 +31,8 @@ class _PhotoListScreenState extends ConsumerState<PhotoListScreen> {
 
     // PageViewの表示を切り替えるのに使う
     _controller = PageController(
-      initialPage: ref.read(photoListIndexProvider),
+      initialPage:
+          ref.read(photoListIndexProvider), //PageViewの状態_controllerを初期化
     );
   }
 
@@ -38,7 +40,7 @@ class _PhotoListScreenState extends ConsumerState<PhotoListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Photo App'),
+        title: Text('Music Composer'),
         actions: [
           // ログアウト用ボタン
           IconButton(
@@ -48,19 +50,39 @@ class _PhotoListScreenState extends ConsumerState<PhotoListScreen> {
         ],
       ),
       body: PageView(
-        controller: _controller,
+        controller: _controller, // PageViewのstateを管理する引数
         onPageChanged: (int index) => _onPageChanged(index),
         children: [
           //「全ての画像」を表示する部分
           Consumer(
             builder: (BuildContext context, WidgetRef ref, Widget? child) {
               return ref.watch(photoListProvider).when(
-                    data: (List<Photo> photoList) => PhotoGridView(
-                      // コールバックを設定しタップした画像のURLを受け取る
-                      // Cloud Firestoreから取得した画像のURL一覧を渡す
-                      photoList: photoList,
-                      onTap: (photo) => _onTapPhoto(photo, photoList),
-                      onTapFav: (photo) => _onTapFav(photo),
+                    // data: (List<Photo> photoList) => PhotoGridView(
+                    //   // コールバックを設定しタップした画像のURLを受け取る
+                    //   // Cloud Firestoreから取得した画像のURL一覧を渡す
+                    //   photoList: photoList,
+                    //   onTap: (photo) => _onTapPhoto(photo, photoList),
+                    //   onTapFav: (photo) => _onTapFav(photo),
+                    // ),
+                    data: (List<Photo> photoList) => GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 1.0,
+                        mainAxisSpacing: 1.0,
+                      ),
+                      itemCount: photoList.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final Photo photo = photoList[index];
+                        return GestureDetector(
+                          onTap: () => _onTapPhoto(photo, photoList),
+                          child: ImageNetwork(
+                            image: photo.imageURL,
+                            height: 200,
+                            width: 200,
+                            borderRadius: BorderRadius.circular(1.0),
+                          ),
+                        );
+                      },
                     ),
                     loading: () => Scaffold(
                       body: Center(
@@ -78,10 +100,25 @@ class _PhotoListScreenState extends ConsumerState<PhotoListScreen> {
           Consumer(
             builder: (BuildContext context, WidgetRef ref, Widget? child) {
               return ref.watch(favoritePhotoListProvider).when(
-                    data: (List<Photo> photoList) => PhotoGridView(
-                      photoList: photoList,
-                      onTap: (photo) => _onTapPhoto(photo, photoList),
-                      onTapFav: (photo) => _onTapFav(photo),
+                    data: (List<Photo> photoList) => GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 1.0,
+                        mainAxisSpacing: 1.0,
+                      ),
+                      itemCount: photoList.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final Photo photo = photoList[index];
+                        return GestureDetector(
+                          onTap: () => _onTapPhoto(photo, photoList),
+                          child: ImageNetwork(
+                            image: photo.imageURL,
+                            height: 200,
+                            width: 200,
+                            borderRadius: BorderRadius.circular(1.0),
+                          ),
+                        );
+                      },
                     ),
                     loading: () => Scaffold(
                       body: Center(
@@ -99,6 +136,7 @@ class _PhotoListScreenState extends ConsumerState<PhotoListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        //+ボタン
         onPressed: () => _onAddPhoto(),
         child: Icon(Icons.add),
       ),
@@ -106,7 +144,8 @@ class _PhotoListScreenState extends ConsumerState<PhotoListScreen> {
         builder: (BuildContext context, WidgetRef ref, Widget? child) {
           final photoIndex = ref.watch(photoListIndexProvider);
           return BottomNavigationBar(
-            onTap: (int index) => _onTapBottomNavigationItem(index),
+            onTap: (int index) =>
+                _onTapBottomNavigationItem(index), //indexはフォトだと0, お気に入りだと1が入る
             items: [
               BottomNavigationBarItem(
                 icon: Icon(Icons.image),
@@ -147,8 +186,8 @@ class _PhotoListScreenState extends ConsumerState<PhotoListScreen> {
 
   void _onTapPhoto(Photo photo, List<Photo> photoList) {
     final initialIndex = photoList.indexOf(photo);
-    print("ontapphoto" + initialIndex.toString());
-//    ref.read(photoViewInitialIndexProvider.notifier).state = initialIndex;
+    // print("ontapphoto" + initialIndex.toString());
+    ref.read(photoViewInitialIndexProvider.notifier).state = initialIndex;
 
     // 最初に表示する画像のURLを指定して、画像詳細画面に切り替える
     Navigator.of(context).push(
@@ -191,27 +230,17 @@ class _PhotoListScreenState extends ConsumerState<PhotoListScreen> {
   Future<void> _onAddPhoto() async {
     final FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.image,
+      withData: true, //追加
     );
     if (result != null) {
       final User user = FirebaseAuth.instance.currentUser!;
       final PhotoRepository repository = PhotoRepository(user);
       // final File file = File(result.files.single.path!);
       await repository.addPhoto(result.files.first);
-    }
-    /*
-    // 画像ファイル選択
-    final FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-      withData: true, //追加
-    );
-
-    // 画像ファイルが選択された場合
-    if (result != null) {
       PlatformFile platformFile = result.files.first;
       String path = utf8.decode(platformFile.bytes!);
       final File file = File(path);
       // ログイン中のユーザー情報を取得
-      
 
       // フォルダとファイル名を指定し画像ファイルをアップロード
       final int timestamp = DateTime.now().microsecondsSinceEpoch;
@@ -224,7 +253,6 @@ class _PhotoListScreenState extends ConsumerState<PhotoListScreen> {
           .child(filename) //ファイル名
           .putFile(file); //画像ファイル
     }
-    */
   }
 
   Future<void> _onTapFav(Photo photo) async {

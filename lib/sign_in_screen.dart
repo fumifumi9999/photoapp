@@ -40,7 +40,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 // ),
                 // タイトル
                 Text(
-                  'Music Composer2',
+                  'Music Composer Sign in',
                   style: Theme.of(context).textTheme.headline4,
                 ),
                 SizedBox(height: 16),

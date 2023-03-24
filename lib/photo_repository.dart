@@ -42,7 +42,7 @@ class PhotoRepository {
       imageURL: imageURL,
       imagePath: imagePath,
       isFavorite: false, // お気に入り登録
-      //createdAt: Timestamp.now(), //現在時刻
+      createdAt: Timestamp.now().toDate(), //現在時刻
     );
 
     // データをCloud Firestoreに保存
